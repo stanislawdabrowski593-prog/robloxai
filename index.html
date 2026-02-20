@@ -1,35 +1,7 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <title>Roblox Classic TPP</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; font-family: sans-serif; }
-        #gui { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); color: white; padding: 10px; border-radius: 5px; pointer-events: none; }
-    </style>
-</head>
-<body>
-<div id="gui">
-    <b>Sterowanie:</b><br>
-    Strzałki / WASD - Poruszanie<br>
-    Myszka (przytrzymaj) - Obracanie kamery<br>
-    Spacja - Skok
-</div>
-
-<script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-    }
-  }
-</script>
-
 <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-    // SCENA
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -39,91 +11,98 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    // ŚWIATŁO
     const light = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(light);
     const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
     dirLight.position.set(10, 20, 10);
     scene.add(dirLight);
 
-    // PODŁOGA
-    const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(200, 200),
-        new THREE.MeshPhongMaterial({ color: 0x3a8e3a })
-    );
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshPhongMaterial({ color: 0x3a8e3a }));
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // POSTAĆ (NOOB)
+    // --- BUDOWA POSTACI Z RĘKAMI ---
     const player = new THREE.Group();
-    
-    // Głowa
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 0.8), new THREE.MeshPhongMaterial({color: 0xffff00}));
-    head.position.y = 2.2;
+    const matYellow = new THREE.MeshPhongMaterial({color: 0xffff00});
+    const matBlue = new THREE.MeshPhongMaterial({color: 0x0000ff});
+    const matGreen = new THREE.MeshPhongMaterial({color: 0x00ff00});
+
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), matYellow);
+    head.position.y = 2.15;
     player.add(head);
-    
-    // Tułów
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.2, 0.6), new THREE.MeshPhongMaterial({color: 0x0000ff}));
+
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.5), matBlue);
     torso.position.y = 1.2;
     player.add(torso);
-    
+
     // Nogi
-    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1, 0.5), new THREE.MeshPhongMaterial({color: 0x00ff00}));
-    legL.position.set(-0.35, 0.5, 0);
+    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), matGreen);
+    legL.position.set(-0.3, 0.5, 0);
     player.add(legL);
     const legR = legL.clone();
-    legR.position.set(0.35, 0.5, 0);
+    legR.position.set(0.3, 0.5, 0);
     player.add(legR);
+
+    // Ręce
+    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), matYellow);
+    armL.position.set(-0.7, 1.3, 0);
+    player.add(armL);
+    const armR = armL.clone();
+    armR.position.set(0.7, 1.3, 0);
+    player.add(armR);
 
     scene.add(player);
 
-    // KAMERA (Orbit)
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enablePan = false;
-    controls.minDistance = 5;
-    controls.maxDistance = 20;
-
-    // PORUSZANIE
     const keys = {};
     document.addEventListener('keydown', (e) => keys[e.code] = true);
     document.addEventListener('keyup', (e) => keys[e.code] = false);
 
     let velocityY = 0;
-    const speed = 0.15;
+    let walkCycle = 0; // Licznik animacji
 
     function animate() {
         requestAnimationFrame(animate);
-
         const direction = new THREE.Vector3();
-        if (keys['KeyW'] || keys['ArrowUp']) direction.z -= 1;
-        if (keys['KeyS'] || keys['ArrowDown']) direction.z += 1;
-        if (keys['KeyA'] || keys['ArrowLeft']) direction.x -= 1;
-        if (keys['KeyD'] || keys['ArrowRight']) direction.x += 1;
+        let isMoving = false;
 
-        if (direction.length() > 0) {
+        if (keys['KeyW'] || keys['ArrowUp']) { direction.z -= 1; isMoving = true; }
+        if (keys['KeyS'] || keys['ArrowDown']) { direction.z += 1; isMoving = true; }
+        if (keys['KeyA'] || keys['ArrowLeft']) { direction.x -= 1; isMoving = true; }
+        if (keys['KeyD'] || keys['ArrowRight']) { direction.x += 1; isMoving = true; }
+
+        if (isMoving) {
             direction.normalize();
-            
-            // Obrót gracza względem kamery
             const angle = Math.atan2(camera.position.x - player.position.x, camera.position.z - player.position.z);
             direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-            
-            player.position.addScaledVector(direction, speed);
+            player.position.addScaledVector(direction, 0.15);
             player.rotation.y = Math.atan2(direction.x, direction.z);
+
+            // --- ANIMACJA CHODZENIA ---
+            walkCycle += 0.15;
+            const motion = Math.sin(walkCycle) * 0.5;
+            
+            // Machanie nogami
+            legL.rotation.x = motion;
+            legR.rotation.x = -motion;
+            // Machanie rękami (odwrotnie do nóg)
+            armL.rotation.x = -motion;
+            armR.rotation.x = motion;
+        } else {
+            // Reset pozycji kończyn w bezruchu
+            legL.rotation.x = 0;
+            legR.rotation.x = 0;
+            armL.rotation.x = 0;
+            armR.rotation.x = 0;
         }
 
-        // Skok i grawitacja
         if (keys['Space'] && player.position.y <= 0.01) velocityY = 0.2;
         player.position.y += velocityY;
         if (player.position.y > 0) velocityY -= 0.01;
-        else {
-            player.position.y = 0;
-            velocityY = 0;
-        }
+        else { player.position.y = 0; velocityY = 0; }
 
-        // Kamera podąża za graczem
         controls.target.copy(player.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
         controls.update();
-
         renderer.render(scene, camera);
     }
     animate();
@@ -134,5 +113,3 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 </script>
-</body>
-</html>
