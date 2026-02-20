@@ -1,1 +1,170 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Mój Własny Roblox - v2</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #ui { 
+            position: absolute; top: 20px; left: 20px; 
+            color: white; background: rgba(0,0,0,0.6); 
+            padding: 15px; border-radius: 10px; pointer-events: none;
+            border: 2px solid #ffffff33;
+        }
+        /* Celownik na środku ekranu */
+        #crosshair {
+            position: absolute; top: 50%; left: 50%;
+            width: 20px; height: 20px;
+            border: 2px solid white; border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        #crosshair::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            width: 4px; height: 4px; background: white;
+            border-radius: 50%; transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
 
+<div id="crosshair"></div>
+<div id="ui">
+    <h2 style="margin-top:0">Roblox Clone 2.0</h2>
+    <p>🚶 <b>WASD</b> - Chodzenie</p>
+    <p>🚀 <b>Spacja</b> - Skok</p>
+    <p>🧱 <b>LPM</b> - Postaw blok</p>
+    <p>🖱️ <b>Kliknij</b> - Zacznij grę</p>
+</div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+
+<script type="module">
+    import * as THREE from 'three';
+    import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+
+    // SCENA
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x40a9ff); // Jasny niebieski
+    scene.fog = new THREE.Fog(0x40a9ff, 0, 100);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    document.body.appendChild(renderer.domElement);
+
+    // ŚWIATŁO
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+    sunLight.position.set(10, 20, 10);
+    scene.add(sunLight);
+
+    // PODŁOGA (BASEPLATE)
+    const grid = new THREE.GridHelper(100, 50, 0x000000, 0x555555);
+    scene.add(grid);
+    const floorGeo = new THREE.PlaneGeometry(100, 100);
+    const floorMat = new THREE.MeshPhongMaterial({ color: 0x228B22 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    // STEROWANIE
+    const controls = new PointerLockControls(camera, document.body);
+    document.addEventListener('click', () => controls.lock());
+
+    let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+    const velocity = new THREE.Vector3();
+    const direction = new THREE.Vector3();
+
+    document.addEventListener('keydown', (e) => {
+        if(e.code === 'KeyW') moveForward = true;
+        if(e.code === 'KeyS') moveBackward = true;
+        if(e.code === 'KeyA') moveLeft = true;
+        if(e.code === 'KeyD') moveRight = true;
+        if(e.code === 'Space' && camera.position.y <= 1.61) velocity.y += 10;
+    });
+
+    document.addEventListener('keyup', (e) => {
+        if(e.code === 'KeyW') moveForward = false;
+        if(e.code === 'KeyS') moveBackward = false;
+        if(e.code === 'KeyA') moveLeft = false;
+        if(e.code === 'KeyD') moveRight = false;
+    });
+
+    // --- SYSTEM BUDOWANIA ---
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2(0, 0); // Środek ekranu
+
+    document.addEventListener('mousedown', (event) => {
+        if (event.button === 0 && controls.isLocked) { // Lewy przycisk myszy
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children);
+
+            if (intersects.length > 0) {
+                const intersect = intersects[0];
+                const voxel = new THREE.Mesh(
+                    new THREE.BoxGeometry(2, 2, 2),
+                    new THREE.MeshPhongMaterial({ color: 0xff4444 }) // Czerwony klockowy kolor
+                );
+                
+                // Ustawienie bloku dokładnie w miejscu uderzenia + przesunięcie o wektor normalny (żeby nie był w środku podłogi)
+                voxel.position.copy(intersect.point).add(intersect.face.normal);
+                voxel.position.divideScalar(2).floor().multiplyScalar(2).addScalar(1);
+                
+                scene.add(voxel);
+            }
+        }
+    });
+
+    camera.position.y = 1.6;
+
+    // PĘTLA
+    let prevTime = performance.now();
+    function animate() {
+        requestAnimationFrame(animate);
+        const time = performance.now();
+        const delta = (time - prevTime) / 1000;
+
+        if (controls.isLocked) {
+            velocity.x -= velocity.x * 10.0 * delta;
+            velocity.z -= velocity.z * 10.0 * delta;
+            velocity.y -= 9.8 * 3.0 * delta; // Grawitacja
+
+            direction.z = Number(moveForward) - Number(moveBackward);
+            direction.x = Number(moveRight) - Number(moveLeft);
+            direction.normalize();
+
+            if (moveForward || moveBackward) velocity.z -= direction.z * 400.0 * delta;
+            if (moveLeft || moveRight) velocity.x -= direction.x * 400.0 * delta;
+
+            controls.moveRight(-velocity.x * delta);
+            controls.moveForward(-velocity.z * delta);
+
+            camera.position.y += (velocity.y * delta);
+            if (camera.position.y < 1.6) {
+                velocity.y = 0;
+                camera.position.y = 1.6;
+            }
+        }
+        prevTime = time;
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+</body>
+</html>
