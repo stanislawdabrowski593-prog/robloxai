@@ -1,7 +1,35 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Roblox z Animacją i Rękami</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 10px; font-family: sans-serif; pointer-events: none; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<div id="ui">
+    <b>STEROWANIE:</b><br>
+    WASD - Chodzenie (sprawdź animację!)<br>
+    Myszka - Obracanie kamery<br>
+    Spacja - Skok
+</div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+
 <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+    // SCENA
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -11,105 +39,96 @@
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const light = new THREE.AmbientLight(0xffffff, 0.8);
+    const light = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(light);
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-    dirLight.position.set(10, 20, 10);
-    scene.add(dirLight);
 
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshPhongMaterial({ color: 0x3a8e3a }));
+    // PODŁOGA
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshPhongMaterial({ color: 0x3a8e3a }));
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // --- BUDOWA POSTACI Z RĘKAMI ---
+    // --- GRACZ ---
     const player = new THREE.Group();
-    const matYellow = new THREE.MeshPhongMaterial({color: 0xffff00});
-    const matBlue = new THREE.MeshPhongMaterial({color: 0x0000ff});
-    const matGreen = new THREE.MeshPhongMaterial({color: 0x00ff00});
+    const yellowMat = new THREE.MeshPhongMaterial({color: 0xffff00});
+    const blueMat = new THREE.MeshPhongMaterial({color: 0x0000ff});
+    const greenMat = new THREE.MeshPhongMaterial({color: 0x00ff00});
 
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), matYellow);
-    head.position.y = 2.15;
-    player.add(head);
-
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.5), matBlue);
+    // Tułów
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.6), blueMat);
     torso.position.y = 1.2;
     player.add(torso);
 
-    // Nogi
-    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), matGreen);
-    legL.position.set(-0.3, 0.5, 0);
-    player.add(legL);
-    const legR = legL.clone();
-    legR.position.set(0.3, 0.5, 0);
-    player.add(legR);
+    // Głowa
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), yellowMat);
+    head.position.y = 2.15;
+    player.add(head);
 
-    // Ręce
-    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), matYellow);
-    armL.position.set(-0.7, 1.3, 0);
+    // RĘCE (teraz na pewno będą!)
+    const armGeo = new THREE.BoxGeometry(0.4, 1, 0.4);
+    const armL = new THREE.Mesh(armGeo, yellowMat);
+    armL.position.set(-0.75, 1.3, 0); // Po lewej
     player.add(armL);
-    const armR = armL.clone();
-    armR.position.set(0.7, 1.3, 0);
+
+    const armR = new THREE.Mesh(armGeo, yellowMat);
+    armR.position.set(0.75, 1.3, 0); // Po prawej
     player.add(armR);
+
+    // NOGI
+    const legGeo = new THREE.BoxGeometry(0.45, 1, 0.45);
+    const legL = new THREE.Mesh(legGeo, greenMat);
+    legL.position.set(-0.25, 0.5, 0);
+    player.add(legL);
+
+    const legR = new THREE.Mesh(legGeo, greenMat);
+    legR.position.set(0.25, 0.5, 0);
+    player.add(legR);
 
     scene.add(player);
 
+    // STEROWANIE
     const controls = new OrbitControls(camera, renderer.domElement);
     const keys = {};
-    document.addEventListener('keydown', (e) => keys[e.code] = true);
-    document.addEventListener('keyup', (e) => keys[e.code] = false);
+    window.onkeydown = (e) => keys[e.code] = true;
+    window.onkeyup = (e) => keys[e.code] = false;
 
-    let velocityY = 0;
-    let walkCycle = 0; // Licznik animacji
+    let walkTime = 0;
 
     function animate() {
         requestAnimationFrame(animate);
-        const direction = new THREE.Vector3();
         let isMoving = false;
+        const moveDir = new THREE.Vector3();
 
-        if (keys['KeyW'] || keys['ArrowUp']) { direction.z -= 1; isMoving = true; }
-        if (keys['KeyS'] || keys['ArrowDown']) { direction.z += 1; isMoving = true; }
-        if (keys['KeyA'] || keys['ArrowLeft']) { direction.x -= 1; isMoving = true; }
-        if (keys['KeyD'] || keys['ArrowRight']) { direction.x += 1; isMoving = true; }
+        if (keys['KeyW']) { moveDir.z -= 1; isMoving = true; }
+        if (keys['KeyS']) { moveDir.z += 1; isMoving = true; }
+        if (keys['KeyA']) { moveDir.x -= 1; isMoving = true; }
+        if (keys['KeyD']) { moveDir.x += 1; isMoving = true; }
 
         if (isMoving) {
-            direction.normalize();
-            const angle = Math.atan2(camera.position.x - player.position.x, camera.position.z - player.position.z);
-            direction.applyAxisAngle(new THREE.Vector3(0, 1, 0), angle);
-            player.position.addScaledVector(direction, 0.15);
-            player.rotation.y = Math.atan2(direction.x, direction.z);
+            moveDir.normalize();
+            const camAngle = Math.atan2(camera.position.x - player.position.x, camera.position.z - player.position.z);
+            moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), camAngle);
+            player.position.addScaledVector(moveDir, 0.12);
+            player.rotation.y = Math.atan2(moveDir.x, moveDir.z);
 
-            // --- ANIMACJA CHODZENIA ---
-            walkCycle += 0.15;
-            const motion = Math.sin(walkCycle) * 0.5;
+            // ANIMACJA CHODZENIA
+            walkTime += 0.15;
+            const wave = Math.sin(walkTime) * 0.6;
             
-            // Machanie nogami
-            legL.rotation.x = motion;
-            legR.rotation.x = -motion;
-            // Machanie rękami (odwrotnie do nóg)
-            armL.rotation.x = -motion;
-            armR.rotation.x = motion;
+            legL.rotation.x = wave;
+            legR.rotation.x = -wave;
+            armL.rotation.x = -wave;
+            armR.rotation.x = wave;
         } else {
-            // Reset pozycji kończyn w bezruchu
-            legL.rotation.x = 0;
-            legR.rotation.x = 0;
-            armL.rotation.x = 0;
-            armR.rotation.x = 0;
+            // Reset w bezruchu
+            legL.rotation.x = 0; legR.rotation.x = 0;
+            armL.rotation.x = 0; armR.rotation.x = 0;
         }
 
-        if (keys['Space'] && player.position.y <= 0.01) velocityY = 0.2;
-        player.position.y += velocityY;
-        if (player.position.y > 0) velocityY -= 0.01;
-        else { player.position.y = 0; velocityY = 0; }
-
-        controls.target.copy(player.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+        controls.target.copy(player.position.clone().add(new THREE.Vector3(0, 1, 0)));
         controls.update();
         renderer.render(scene, camera);
     }
     animate();
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-    });
 </script>
+</body>
+</html>
