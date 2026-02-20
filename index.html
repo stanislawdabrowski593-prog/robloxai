@@ -2,64 +2,107 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Roblox z Systemem Menu ESC</title>
+    <title>Roblox Platform - Studio</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #232527; }
+        body { margin: 0; overflow: hidden; font-family: 'Gotham', 'Segoe UI', sans-serif; background: #1B1D1F; color: white; }
         
-        /* GŁÓWNE MENU ROBOLX */
+        /* GŁÓWNE MENU */
         #main-menu {
             position: absolute; width: 100%; height: 100%;
             background: #1B1D1F; display: flex; flex-direction: column; align-items: center; z-index: 200;
         }
-        .header { width: 100%; padding: 20px; background: #2B2D2F; color: white; font-size: 24px; font-weight: bold; text-align: center; }
-        .game-card { width: 280px; background: #393B3D; border-radius: 10px; margin-top: 50px; cursor: pointer; transition: 0.2s; overflow: hidden; }
-        .game-card:hover { transform: scale(1.05); }
-        .game-img { width: 100%; height: 150px; background: #3a8e3a; display: flex; align-items: center; justify-content: center; font-size: 50px; }
-        .game-info { padding: 15px; color: white; }
+        
+        .header { 
+            width: 100%; padding: 15px 0; background: #2B2D2F; 
+            font-size: 20px; font-weight: 800; text-align: center; 
+            border-bottom: 1px solid #333; letter-spacing: 1px;
+        }
 
-        /* MENU PAUZY (ESC) */
+        .container { width: 90%; max-width: 1000px; margin-top: 40px; }
+        .section-title { font-size: 22px; margin-bottom: 20px; font-weight: 600; }
+
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; width: 100%; }
+
+        /* NOWE IKONKI GIER */
+        .game-card { 
+            background: #2B2D2F; border-radius: 8px; overflow: hidden; 
+            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: 1px solid #3e4042;
+        }
+        .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: #00A2FF; }
+
+        .game-thumb { 
+            width: 100%; height: 130px; 
+            background: linear-gradient(45deg, #00A2FF, #0066FF); /* Gradient zamiast emotki */
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        
+        /* Specyficzne tła dla gier */
+        .thumb-obby { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .thumb-base { background: linear-gradient(135deg, #11998e, #38ef7d); }
+
+        .game-name { padding: 10px; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .game-stats { padding: 0 10px 10px 10px; font-size: 12px; color: #888; display: flex; align-items: center; }
+        .online-dot { width: 8px; height: 8px; background: #00E676; border-radius: 50%; margin-right: 6px; }
+
+        /* AVATAR SELECTOR */
+        .avatar-box { margin-bottom: 30px; display: flex; gap: 15px; }
+        .av-btn { 
+            padding: 8px 15px; border-radius: 4px; border: 1px solid #444; 
+            background: #393B3D; color: white; cursor: pointer; font-size: 14px;
+        }
+        .av-btn.active { border-color: #00A2FF; background: rgba(0, 162, 255, 0.2); }
+
+        /* MENU ESC */
         #esc-menu {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); display: none; 
+            background: rgba(15, 15, 15, 0.85); display: none; 
             flex-direction: column; align-items: center; justify-content: center; z-index: 300;
         }
-        .esc-box { background: #2B2D2F; padding: 30px; border-radius: 10px; width: 300px; display: flex; flex-direction: column; gap: 10px; }
-        .esc-btn { padding: 15px; border: none; border-radius: 5px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-resume { background: #555; }
+        .esc-box { background: #2B2D2F; padding: 25px; border-radius: 10px; width: 300px; display: flex; flex-direction: column; gap: 12px; }
+        .esc-btn { padding: 12px; border: none; border-radius: 4px; color: white; font-weight: 700; cursor: pointer; }
+        .btn-resume { background: #393B3D; }
         .btn-reset { background: #F64141; }
         .btn-leave { background: #00A2FF; }
 
-        #ui { position: absolute; bottom: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 8px; border-radius: 5px; display: none; pointer-events: none; }
     </style>
 </head>
 <body>
 
 <div id="main-menu">
     <div class="header">ROBLOX</div>
-    <div style="color: white; margin-top: 20px;">
-        Wybierz Avatar: 
-        <button onclick="gender='boy'" style="background: #00A2FF; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Chłopak</button>
-        <button onclick="gender='girl'" style="background: #FF69B4; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Dziewczyna</button>
-    </div>
-    <div class="game-card" onclick="startGame()">
-        <div class="game-img">🌳</div>
-        <div class="game-info">
-            <b>Baseplate Adventure</b><br>
-            <span style="font-size: 12px; color: #aaa;">Graj teraz</span>
+    
+    <div class="container">
+        <div class="section-title">Wybierz Avatar</div>
+        <div class="avatar-box">
+            <button class="av-btn active" id="btn-boy" onclick="changeAvatar('boy')">Chłopak</button>
+            <button class="av-btn" id="btn-girl" onclick="changeAvatar('girl')">Dziewczyna</button>
+        </div>
+
+        <div class="section-title">Odkrywaj</div>
+        <div class="game-grid">
+            <div class="game-card" onclick="startGame('baseplate')">
+                <div class="game-thumb thumb-base"></div>
+                <div class="game-name">Baseplate Adventure</div>
+                <div class="game-stats"><div class="online-dot"></div> 100% pozytywnych</div>
+            </div>
+            <div class="game-card" onclick="startGame('obby')">
+                <div class="game-thumb thumb-obby"></div>
+                <div class="game-name">Mega Easy Obby</div>
+                <div class="game-stats"><div class="online-dot"></div> 85% pozytywnych</div>
+            </div>
         </div>
     </div>
 </div>
 
 <div id="esc-menu">
     <div class="esc-box">
-        <h2 style="color: white; margin: 0 0 10px 0; text-align: center;">Settings</h2>
-        <button class="esc-btn btn-resume" onclick="toggleEscMenu()">Resume</button>
-        <button class="esc-btn btn-reset" onclick="resetCharacter()">Reset Character</button>
-        <button class="esc-btn btn-leave" onclick="leaveGame()">Leave</button>
+        <h3 style="margin: 0 0 10px 0;">Ustawienia</h3>
+        <button class="esc-btn btn-resume" onclick="toggleEscMenu()">Kontynuuj</button>
+        <button class="esc-btn btn-reset" onclick="resetCharacter()">Resetuj postać</button>
+        <button class="esc-btn btn-leave" onclick="leaveGame()">Wyjdź</button>
     </div>
 </div>
-
-<div id="ui">Naciśnij <b>ESC</b> dla menu</div>
 
 <script type="importmap">
   { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
@@ -68,15 +111,23 @@
 <script type="module">
     import * as THREE from 'three';
 
-    window.gender = 'boy';
+    let scene, camera, renderer, player;
+    let armL, armR, legL, legR;
+    let gender = 'boy';
     let gameActive = false;
     let escOpen = false;
-    let player, scene, camera, renderer, velocityY = 0, isJumping = false;
+    let velocityY = 0;
+    let isJumping = false;
     const keys = {};
 
-    window.startGame = () => {
+    window.changeAvatar = (g) => {
+        gender = g;
+        document.getElementById('btn-boy').classList.toggle('active', g === 'boy');
+        document.getElementById('btn-girl').classList.toggle('active', g === 'girl');
+    };
+
+    window.startGame = (gameType) => {
         document.getElementById('main-menu').style.display = 'none';
-        document.getElementById('ui').style.display = 'block';
         gameActive = true;
         initGame();
     };
@@ -88,16 +139,13 @@
     };
 
     window.resetCharacter = () => {
-        player.position.set(0, 5, 0); // Spada z góry przy resecie
+        player.position.set(0, 10, 0);
         velocityY = 0;
         toggleEscMenu();
     };
 
-    window.leaveGame = () => {
-        location.reload(); // Najprostszy sposób na powrót do menu
-    };
+    window.leaveGame = () => { location.reload(); };
 
-    // Nasłuchiwanie klawisza ESC
     window.addEventListener('keydown', (e) => {
         if (e.code === 'Escape') toggleEscMenu();
         keys[e.code] = true;
@@ -123,23 +171,33 @@
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // BUDOWA POSTACI
+        // POSTAĆ
         player = new THREE.Group();
-        const skinCol = window.gender === 'boy' ? 0xffff00 : 0xffdbac;
-        const torsoCol = window.gender === 'boy' ? 0x0000ff : 0xff69b4;
-        
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.6), new THREE.MeshPhongMaterial({color: torsoCol}));
+        const skinCol = gender === 'boy' ? 0xffff00 : 0xffdbac;
+        const torsoCol = gender === 'boy' ? 0x0000ff : 0xff69b4;
+        const matSkin = new THREE.MeshPhongMaterial({color: skinCol});
+        const matTorso = new THREE.MeshPhongMaterial({color: torsoCol});
+
+        const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.6), matTorso);
         torso.position.y = 1.2; player.add(torso);
-        
-        const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), new THREE.MeshPhongMaterial({color: skinCol}));
+        const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), matSkin);
         head.position.y = 2.15; player.add(head);
 
-        // Twarz
-        const eye = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.05), new THREE.MeshBasicMaterial({color: 0}));
-        const eL = eye.clone(); eL.position.set(-0.2, 2.25, 0.36); player.add(eL);
-        const eR = eye.clone(); eR.position.set(0.2, 2.25, 0.36); player.add(eR);
-        const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.05), new THREE.MeshBasicMaterial({color: 0}));
-        mouth.position.set(0, 2.05, 0.36); player.add(mouth);
+        // TWARZ (Poprawiona)
+        const eyeMat = new THREE.MeshBasicMaterial({color: 0});
+        const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.05), eyeMat);
+        eyeL.position.set(-0.2, 2.25, 0.36); player.add(eyeL);
+        const eyeR = eyeL.clone(); eyeR.position.x = 0.2; player.add(eyeR);
+        const smile = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.05), eyeMat);
+        smile.position.set(0, 2.05, 0.36); player.add(smile);
+
+        armL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), matSkin);
+        armL.position.set(-0.75, 1.3, 0); player.add(armL);
+        armR = armL.clone(); armR.position.set(0.75, 1.3, 0); player.add(armR);
+
+        legL = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1, 0.45), new THREE.MeshPhongMaterial({color: 0x333333}));
+        legL.position.set(-0.25, 0.5, 0); player.add(legL);
+        legR = legL.clone(); legR.position.set(0.25, 0.5, 0); player.add(legR);
 
         scene.add(player);
         animate();
@@ -150,24 +208,23 @@
         requestAnimationFrame(animate);
         if (gameActive && !escOpen) {
             const moveDir = new THREE.Vector3();
-            let isMoving = false;
+            let moving = false;
+            if (keys['KeyW']) { moveDir.z = -1; moving = true; }
+            if (keys['KeyS']) { moveDir.z = 1; moving = true; }
+            if (keys['KeyA']) { moveDir.x = -1; moving = true; }
+            if (keys['KeyD']) { moveDir.x = 1; moving = true; }
 
-            if (keys['KeyW']) { moveDir.z = -1; isMoving = true; }
-            if (keys['KeyS']) { moveDir.z = 1; isMoving = true; }
-            if (keys['KeyA']) { moveDir.x = -1; isMoving = true; }
-            if (keys['KeyD']) { moveDir.x = 1; isMoving = true; }
-
-            if (isMoving) {
+            if (moving) {
                 moveDir.normalize();
                 player.position.addScaledVector(moveDir, 0.15);
                 player.rotation.y = Math.atan2(moveDir.x, moveDir.z);
                 walkTime += 0.2;
-                // Tutaj można dodać animację rąk (armL.rotation.x itp.)
+                armL.rotation.x = -Math.sin(walkTime) * 0.7; armR.rotation.x = Math.sin(walkTime) * 0.7;
+                legL.rotation.x = Math.sin(walkTime) * 0.7; legR.rotation.x = -Math.sin(walkTime) * 0.7;
             }
 
             player.position.y += velocityY;
-            if (player.position.y > 0) velocityY -= 0.012;
-            else { player.position.y = 0; velocityY = 0; isJumping = false; }
+            if (player.position.y > 0) velocityY -= 0.012; else { player.position.y = 0; velocityY = 0; isJumping = false; }
 
             camera.position.set(player.position.x, player.position.y + 6, player.position.z + 12);
             camera.lookAt(player.position.x, player.position.y + 1.5, player.position.z);
