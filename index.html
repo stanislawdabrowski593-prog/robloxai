@@ -2,94 +2,38 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Roblox Platform - Studio</title>
+    <title>Roblox Studio - Obby Update</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Gotham', 'Segoe UI', sans-serif; background: #1B1D1F; color: white; }
-        
-        /* GŁÓWNE MENU */
-        #main-menu {
-            position: absolute; width: 100%; height: 100%;
-            background: #1B1D1F; display: flex; flex-direction: column; align-items: center; z-index: 200;
-        }
-        
-        .header { 
-            width: 100%; padding: 15px 0; background: #2B2D2F; 
-            font-size: 20px; font-weight: 800; text-align: center; 
-            border-bottom: 1px solid #333; letter-spacing: 1px;
-        }
-
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #1B1D1F; color: white; }
+        #main-menu { position: absolute; width: 100%; height: 100%; background: #1B1D1F; display: flex; flex-direction: column; align-items: center; z-index: 200; }
+        .header { width: 100%; padding: 15px 0; background: #2B2D2F; font-size: 20px; font-weight: 800; text-align: center; border-bottom: 1px solid #333; }
         .container { width: 90%; max-width: 1000px; margin-top: 40px; }
-        .section-title { font-size: 22px; margin-bottom: 20px; font-weight: 600; }
-
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; width: 100%; }
-
-        /* NOWE IKONKI GIER */
-        .game-card { 
-            background: #2B2D2F; border-radius: 8px; overflow: hidden; 
-            transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: 1px solid #3e4042;
-        }
-        .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); border-color: #00A2FF; }
-
-        .game-thumb { 
-            width: 100%; height: 130px; 
-            background: linear-gradient(45deg, #00A2FF, #0066FF); /* Gradient zamiast emotki */
-            display: flex; align-items: center; justify-content: center;
-            position: relative;
-        }
-        
-        /* Specyficzne tła dla gier */
-        .thumb-obby { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .game-card { background: #2B2D2F; border-radius: 8px; overflow: hidden; cursor: pointer; border: 1px solid #3e4042; transition: 0.2s; }
+        .game-card:hover { transform: translateY(-5px); border-color: #00A2FF; }
+        .game-thumb { width: 100%; height: 130px; }
         .thumb-base { background: linear-gradient(135deg, #11998e, #38ef7d); }
-
-        .game-name { padding: 10px; font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .game-stats { padding: 0 10px 10px 10px; font-size: 12px; color: #888; display: flex; align-items: center; }
-        .online-dot { width: 8px; height: 8px; background: #00E676; border-radius: 50%; margin-right: 6px; }
-
-        /* AVATAR SELECTOR */
-        .avatar-box { margin-bottom: 30px; display: flex; gap: 15px; }
-        .av-btn { 
-            padding: 8px 15px; border-radius: 4px; border: 1px solid #444; 
-            background: #393B3D; color: white; cursor: pointer; font-size: 14px;
-        }
-        .av-btn.active { border-color: #00A2FF; background: rgba(0, 162, 255, 0.2); }
-
-        /* MENU ESC */
-        #esc-menu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 15, 15, 0.85); display: none; 
-            flex-direction: column; align-items: center; justify-content: center; z-index: 300;
-        }
-        .esc-box { background: #2B2D2F; padding: 25px; border-radius: 10px; width: 300px; display: flex; flex-direction: column; gap: 12px; }
-        .esc-btn { padding: 12px; border: none; border-radius: 4px; color: white; font-weight: 700; cursor: pointer; }
-        .btn-resume { background: #393B3D; }
-        .btn-reset { background: #F64141; }
-        .btn-leave { background: #00A2FF; }
-
+        .thumb-obby { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
+        .game-name { padding: 10px; font-weight: 600; }
+        #esc-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 300; }
+        .esc-box { background: #2B2D2F; padding: 25px; border-radius: 10px; width: 280px; display: flex; flex-direction: column; gap: 10px; }
+        .esc-btn { padding: 12px; border: none; border-radius: 4px; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div id="main-menu">
     <div class="header">ROBLOX</div>
-    
     <div class="container">
-        <div class="section-title">Wybierz Avatar</div>
-        <div class="avatar-box">
-            <button class="av-btn active" id="btn-boy" onclick="changeAvatar('boy')">Chłopak</button>
-            <button class="av-btn" id="btn-girl" onclick="changeAvatar('girl')">Dziewczyna</button>
-        </div>
-
-        <div class="section-title">Odkrywaj</div>
+        <h3>Twoje Gry</h3>
         <div class="game-grid">
-            <div class="game-card" onclick="startGame('baseplate')">
+            <div class="game-card" onclick="startGame('base')">
                 <div class="game-thumb thumb-base"></div>
-                <div class="game-name">Baseplate Adventure</div>
-                <div class="game-stats"><div class="online-dot"></div> 100% pozytywnych</div>
+                <div class="game-name">Grass Obby</div>
             </div>
-            <div class="game-card" onclick="startGame('obby')">
+            <div class="game-card" onclick="startGame('lava')">
                 <div class="game-thumb thumb-obby"></div>
-                <div class="game-name">Mega Easy Obby</div>
-                <div class="game-stats"><div class="online-dot"></div> 85% pozytywnych</div>
+                <div class="game-name">Lava Run</div>
             </div>
         </div>
     </div>
@@ -97,10 +41,9 @@
 
 <div id="esc-menu">
     <div class="esc-box">
-        <h3 style="margin: 0 0 10px 0;">Ustawienia</h3>
-        <button class="esc-btn btn-resume" onclick="toggleEscMenu()">Kontynuuj</button>
-        <button class="esc-btn btn-reset" onclick="resetCharacter()">Resetuj postać</button>
-        <button class="esc-btn btn-leave" onclick="leaveGame()">Wyjdź</button>
+        <button class="esc-btn" style="background:#555" onclick="toggleEscMenu()">Resume</button>
+        <button class="esc-btn" style="background:#F64141" onclick="killPlayer()">Reset Character</button>
+        <button class="esc-btn" style="background:#00A2FF" onclick="location.reload()">Leave</button>
     </div>
 </div>
 
@@ -111,52 +54,52 @@
 <script type="module">
     import * as THREE from 'three';
 
-    let scene, camera, renderer, player;
-    let armL, armR, legL, legR;
-    let gender = 'boy';
-    let gameActive = false;
-    let escOpen = false;
-    let velocityY = 0;
-    let isJumping = false;
+    let scene, camera, renderer, player, parts = {};
+    let obstacles = [];
+    let gameActive = false, escOpen = false, isDead = false;
+    let velocityY = 0, isJumping = false, walkTime = 0;
     const keys = {};
 
-    window.changeAvatar = (g) => {
-        gender = g;
-        document.getElementById('btn-boy').classList.toggle('active', g === 'boy');
-        document.getElementById('btn-girl').classList.toggle('active', g === 'girl');
-    };
-
-    window.startGame = (gameType) => {
+    window.startGame = (type) => {
         document.getElementById('main-menu').style.display = 'none';
         gameActive = true;
-        initGame();
+        initGame(type);
     };
 
     window.toggleEscMenu = () => {
-        if (!gameActive) return;
+        if (!gameActive || isDead) return;
         escOpen = !escOpen;
         document.getElementById('esc-menu').style.display = escOpen ? 'flex' : 'none';
     };
 
-    window.resetCharacter = () => {
-        player.position.set(0, 10, 0);
-        velocityY = 0;
-        toggleEscMenu();
+    window.killPlayer = () => {
+        if (isDead) return;
+        isDead = true;
+        if(escOpen) toggleEscMenu();
+        
+        // Animacja ginięcia - rozrzucenie części
+        Object.values(parts).forEach(p => {
+            const force = 0.2;
+            p.userData.v = new THREE.Vector3((Math.random()-0.5)*force, Math.random()*force, (Math.random()-0.5)*force);
+            p.userData.r = new THREE.Vector3(Math.random()*0.1, Math.random()*0.1, Math.random()*0.1);
+        });
+
+        setTimeout(() => {
+            respawn();
+        }, 2000);
     };
 
-    window.leaveGame = () => { location.reload(); };
+    function respawn() {
+        player.position.set(0, 5, 0);
+        velocityY = 0;
+        isDead = false;
+        Object.values(parts).forEach(p => {
+            p.position.set(p.userData.origPos.x, p.userData.origPos.y, p.userData.origPos.z);
+            p.rotation.set(0,0,0);
+        });
+    }
 
-    window.addEventListener('keydown', (e) => {
-        if (e.code === 'Escape') toggleEscMenu();
-        keys[e.code] = true;
-        if(e.code === 'Space' && !isJumping && gameActive && !escOpen) {
-            velocityY = 0.25;
-            isJumping = true;
-        }
-    });
-    window.addEventListener('keyup', (e) => keys[e.code] = false);
-
-    function initGame() {
+    function initGame(type) {
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x87CEEB);
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -164,49 +107,75 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        const light = new THREE.AmbientLight(0xffffff, 1);
-        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+        const sun = new THREE.DirectionalLight(0xffffff, 0.6);
+        sun.position.set(10, 20, 10);
+        scene.add(sun);
 
+        // Mapa
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshPhongMaterial({ color: 0x3a8e3a }));
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
+        // Przeszkody Obby
+        const createPart = (x, y, z, w, h, d, color, isLava = false) => {
+            const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshPhongMaterial({ color }));
+            mesh.position.set(x, y, z);
+            scene.add(mesh);
+            if (isLava) mesh.userData.isLava = true;
+            obstacles.push(mesh);
+        };
+
+        if(type === 'base') {
+            createPart(0, 1, -10, 5, 2, 5, 0xcccccc);
+            createPart(0, 2, -20, 5, 4, 5, 0xcccccc);
+            createPart(0, 0.1, -30, 10, 0.2, 10, 0xff0000, true); // Lawa
+            createPart(0, 4, -40, 5, 1, 5, 0xcccccc);
+        } else {
+            for(let i=0; i<10; i++) {
+                createPart(Math.sin(i)*5, i*2, -i*10, 4, 0.5, 4, i%2?0xff0000:0x555555, i%2===0);
+            }
+        }
+
         // POSTAĆ
         player = new THREE.Group();
-        const skinCol = gender === 'boy' ? 0xffff00 : 0xffdbac;
-        const torsoCol = gender === 'boy' ? 0x0000ff : 0xff69b4;
-        const matSkin = new THREE.MeshPhongMaterial({color: skinCol});
-        const matTorso = new THREE.MeshPhongMaterial({color: torsoCol});
+        const createBox = (w, h, d, c, x, y, z, name) => {
+            const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshPhongMaterial({color: c}));
+            m.position.set(x, y, z);
+            player.add(m);
+            m.userData.origPos = {x, y, z};
+            parts[name] = m;
+            return m;
+        };
 
-        const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.6), matTorso);
-        torso.position.y = 1.2; player.add(torso);
-        const head = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.7, 0.7), matSkin);
-        head.position.y = 2.15; player.add(head);
-
-        // TWARZ (Poprawiona)
-        const eyeMat = new THREE.MeshBasicMaterial({color: 0});
-        const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.05), eyeMat);
-        eyeL.position.set(-0.2, 2.25, 0.36); player.add(eyeL);
-        const eyeR = eyeL.clone(); eyeR.position.x = 0.2; player.add(eyeR);
-        const smile = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.05), eyeMat);
-        smile.position.set(0, 2.05, 0.36); player.add(smile);
-
-        armL = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1, 0.4), matSkin);
-        armL.position.set(-0.75, 1.3, 0); player.add(armL);
-        armR = armL.clone(); armR.position.set(0.75, 1.3, 0); player.add(armR);
-
-        legL = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1, 0.45), new THREE.MeshPhongMaterial({color: 0x333333}));
-        legL.position.set(-0.25, 0.5, 0); player.add(legL);
-        legR = legL.clone(); legR.position.set(0.25, 0.5, 0); player.add(legR);
+        createBox(1, 1.2, 0.6, 0x0000ff, 0, 1.2, 0, 'torso');
+        createBox(0.7, 0.7, 0.7, 0xffff00, 0, 2.15, 0, 'head');
+        createBox(0.4, 1, 0.4, 0xffff00, -0.75, 1.3, 0, 'armL');
+        createBox(0.4, 1, 0.4, 0xffff00, 0.75, 1.3, 0, 'armR');
+        createBox(0.45, 1, 0.45, 0x00ff00, -0.25, 0.5, 0, 'legL');
+        createBox(0.45, 1, 0.45, 0x00ff00, 0.25, 0.5, 0, 'legR');
 
         scene.add(player);
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape') toggleEscMenu();
+            keys[e.code] = true;
+            if(e.code === 'Space' && !isJumping && !isDead && !escOpen) { velocityY = 0.28; isJumping = true; }
+        });
+        window.addEventListener('keyup', (e) => keys[e.code] = false);
         animate();
     }
 
-    let walkTime = 0;
     function animate() {
         requestAnimationFrame(animate);
-        if (gameActive && !escOpen) {
+        if (!gameActive) return;
+
+        if (isDead) {
+            Object.values(parts).forEach(p => {
+                p.position.add(p.userData.v);
+                p.rotation.x += p.userData.r.x;
+                p.rotation.y += p.userData.r.y;
+            });
+        } else if (!escOpen) {
             const moveDir = new THREE.Vector3();
             let moving = false;
             if (keys['KeyW']) { moveDir.z = -1; moving = true; }
@@ -216,19 +185,52 @@
 
             if (moving) {
                 moveDir.normalize();
-                player.position.addScaledVector(moveDir, 0.15);
-                player.rotation.y = Math.atan2(moveDir.x, moveDir.z);
+                player.position.addScaledVector(moveDir, 0.16);
+                player.rotation.y = THREE.MathUtils.lerp(player.rotation.y, Math.atan2(moveDir.x, moveDir.z), 0.1);
+                
                 walkTime += 0.2;
-                armL.rotation.x = -Math.sin(walkTime) * 0.7; armR.rotation.x = Math.sin(walkTime) * 0.7;
-                legL.rotation.x = Math.sin(walkTime) * 0.7; legR.rotation.x = -Math.sin(walkTime) * 0.7;
+                // Płynne chodzenie
+                parts.legL.rotation.x = Math.sin(walkTime) * 0.7;
+                parts.legR.rotation.x = -Math.sin(walkTime) * 0.7;
+                parts.armL.rotation.x = -Math.sin(walkTime) * 0.5;
+                parts.armR.rotation.x = Math.sin(walkTime) * 0.5;
+                player.rotation.z = Math.sin(walkTime) * 0.05; // Bujanie na boki
+            } else {
+                ['legL','legR','armL','armR'].forEach(k => parts[k].rotation.x = 0);
+                player.rotation.z = 0;
+            }
+
+            // Animacja skoku
+            if (isJumping) {
+                parts.armL.rotation.z = 0.5;
+                parts.armR.rotation.z = -0.5;
+            } else {
+                parts.armL.rotation.z = 0;
+                parts.armR.rotation.z = 0;
             }
 
             player.position.y += velocityY;
-            if (player.position.y > 0) velocityY -= 0.012; else { player.position.y = 0; velocityY = 0; isJumping = false; }
+            if (player.position.y > 0) velocityY -= 0.015;
+            else { player.position.y = 0; velocityY = 0; isJumping = false; }
 
-            camera.position.set(player.position.x, player.position.y + 6, player.position.z + 12);
-            camera.lookAt(player.position.x, player.position.y + 1.5, player.position.z);
+            // Kolizje z lawą i Obby
+            obstacles.forEach(obj => {
+                const dx = Math.abs(player.position.x - obj.position.x);
+                const dz = Math.abs(player.position.z - obj.position.z);
+                const dy = player.position.y - obj.position.y;
+
+                if (dx < 2 && dz < 2 && Math.abs(dy) < 1.5) {
+                    if (obj.userData.isLava) killPlayer();
+                    else if (dy > 0) { // Stanie na klocku
+                        player.position.y = obj.position.y + 1.5;
+                        velocityY = 0; isJumping = false;
+                    }
+                }
+            });
         }
+
+        camera.position.lerp(new THREE.Vector3(player.position.x, player.position.y + 8, player.position.z + 15), 0.1);
+        camera.lookAt(player.position.x, player.position.y + 2, player.position.z);
         renderer.render(scene, camera);
     }
 </script>
