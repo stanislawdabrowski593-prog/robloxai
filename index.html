@@ -1,16 +1,39 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Roblox v3 - Twarz, Skok i Płynność</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; background: rgba(0,0,0,0.5); padding: 15px; font-family: sans-serif; pointer-events: none; border-radius: 10px; }
+    </style>
+</head>
+<body>
+<div id="ui">
+    <b>ROBLOX CLONE</b><br>
+    WASD - Ruch | Spacja - SKOK<br>
+    Myszka (trzymaj LPM) - Obracanie
+</div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+    }
+  }
+</script>
+
 <script type="module">
     import * as THREE from 'three';
 
-    // SCENA I RENDERER
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
-    const light = new THREE.AmbientLight(0xffffff, 0.9);
+    const light = new THREE.AmbientLight(0xffffff, 1);
     scene.add(light);
 
     // PODŁOGA
@@ -18,11 +41,12 @@
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // --- GRACZ (NOOB) ---
+    // --- GRACZ ---
     const player = new THREE.Group();
     const yellowMat = new THREE.MeshPhongMaterial({color: 0xffff00});
     const blueMat = new THREE.MeshPhongMaterial({color: 0x0000ff});
     const greenMat = new THREE.MeshPhongMaterial({color: 0x00ff00});
+    const blackMat = new THREE.MeshPhongMaterial({color: 0x000000});
 
     const torso = new THREE.Mesh(new THREE.BoxGeometry(1, 1.2, 0.6), blueMat);
     torso.position.y = 1.2;
@@ -32,6 +56,18 @@
     head.position.y = 2.15;
     player.add(head);
 
+    // TWARZ (OCZY I UŚMIECH)
+    const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), blackMat);
+    eyeL.position.set(-0.2, 2.25, 0.35);
+    player.add(eyeL);
+    const eyeR = eyeL.clone();
+    eyeR.position.x = 0.2;
+    player.add(eyeR);
+
+    const mouth = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.1), blackMat);
+    mouth.position.set(0, 2.05, 0.35);
+    player.add(mouth);
+
     const armGeo = new THREE.BoxGeometry(0.4, 1, 0.4);
     const armL = new THREE.Mesh(armGeo, yellowMat);
     armL.position.set(-0.75, 1.3, 0);
@@ -40,8 +76,7 @@
     armR.position.set(0.75, 1.3, 0);
     player.add(armR);
 
-    const legGeo = new THREE.BoxGeometry(0.45, 1, 0.45);
-    const legL = new THREE.Mesh(legGeo, greenMat);
+    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.45, 1, 0.45), greenMat);
     legL.position.set(-0.25, 0.5, 0);
     player.add(legL);
     const legR = legL.clone();
@@ -50,64 +85,70 @@
 
     scene.add(player);
 
-    // --- NOWA LOGIKA KAMERY ---
+    // --- LOGIKA I FIZYKA ---
     let cameraAngle = 0;
-    let cameraDistance = 10;
+    let cameraDistance = 12;
     let isMouseDown = false;
+    let velocityY = 0;
+    let isJumping = false;
 
-    // Obsługa myszki do obracania kamerą
     document.addEventListener('mousedown', () => isMouseDown = true);
     document.addEventListener('mouseup', () => isMouseDown = false);
-    document.addEventListener('mousemove', (e) => {
-        if (isMouseDown) {
-            cameraAngle -= e.movementX * 0.01;
-        }
-    });
+    document.addEventListener('mousemove', (e) => { if (isMouseDown) cameraAngle -= e.movementX * 0.01; });
 
-    // STEROWANIE
     const keys = {};
-    window.onkeydown = (e) => keys[e.code] = true;
+    window.onkeydown = (e) => { 
+        keys[e.code] = true; 
+        if(e.code === 'Space' && !isJumping) {
+            velocityY = 0.25; 
+            isJumping = true;
+        }
+    };
     window.onkeyup = (e) => keys[e.code] = false;
 
     let walkTime = 0;
 
     function animate() {
         requestAnimationFrame(animate);
-        let isMoving = false;
         const moveDir = new THREE.Vector3();
+        let moving = false;
 
-        // Poruszanie względem kąta kamery (tak jak w Roblox)
-        if (keys['KeyW']) { moveDir.z = -1; isMoving = true; }
-        if (keys['KeyS']) { moveDir.z = 1; isMoving = true; }
-        if (keys['KeyA']) { moveDir.x = -1; isMoving = true; }
-        if (keys['KeyD']) { moveDir.x = 1; isMoving = true; }
+        if (keys['KeyW']) { moveDir.z = -1; moving = true; }
+        if (keys['KeyS']) { moveDir.z = 1; moving = true; }
+        if (keys['KeyA']) { moveDir.x = -1; moving = true; }
+        if (keys['KeyD']) { moveDir.x = 1; moving = true; }
 
-        if (isMoving) {
-            moveDir.normalize();
-            // Obracamy wektor ruchu o kąt kamery
-            moveDir.applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
+        if (moving) {
+            moveDir.normalize().applyAxisAngle(new THREE.Vector3(0, 1, 0), cameraAngle);
             player.position.addScaledVector(moveDir, 0.15);
-            
-            // Postać obraca się płynnie w stronę ruchu
-            const targetRotation = Math.atan2(moveDir.x, moveDir.z);
-            player.rotation.y = targetRotation;
+            player.rotation.y = Math.atan2(moveDir.x, moveDir.z);
 
             walkTime += 0.2;
-            const wave = Math.sin(walkTime) * 0.6;
-            legL.rotation.x = wave; legR.rotation.x = -wave;
-            armL.rotation.x = -wave; armR.rotation.x = wave;
+            armL.rotation.x = -Math.sin(walkTime) * 0.7;
+            armR.rotation.x = Math.sin(walkTime) * 0.7;
+            legL.rotation.x = Math.sin(walkTime) * 0.7;
+            legR.rotation.x = -Math.sin(walkTime) * 0.7;
         } else {
-            legL.rotation.x = 0; legR.rotation.x = 0;
-            armL.rotation.x = 0; armR.rotation.x = 0;
+            armL.rotation.x = armR.rotation.x = legL.rotation.x = legR.rotation.x = 0;
         }
 
-        // --- AKTUALIZACJA KAMERY TPP ---
-        const cameraTargetY = player.position.y + 2.5;
-        const camX = player.position.x + Math.sin(cameraAngle) * cameraDistance;
-        const camZ = player.position.z + Math.cos(cameraAngle) * cameraDistance;
-        
-        camera.position.set(camX, cameraTargetY + 2, camZ);
-        camera.lookAt(player.position.x, cameraTargetY, player.position.z);
+        // FIZYKA SKOKU
+        player.position.y += velocityY;
+        if (player.position.y > 0) {
+            velocityY -= 0.012; // Grawitacja
+        } else {
+            player.position.y = 0;
+            velocityY = 0;
+            isJumping = false;
+        }
+
+        // KAMERA
+        camera.position.set(
+            player.position.x + Math.sin(cameraAngle) * cameraDistance,
+            player.position.y + 5,
+            player.position.z + Math.cos(cameraAngle) * cameraDistance
+        );
+        camera.lookAt(player.position.x, player.position.y + 1.5, player.position.z);
 
         renderer.render(scene, camera);
     }
@@ -119,3 +160,5 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 </script>
+</body>
+</html>
